@@ -16,6 +16,7 @@ import os
 import yaml
 import glob
 import json
+import asyncio
 from pathlib import Path
 from functools import reduce
 
@@ -37,6 +38,8 @@ from preprocess import preprocess, Resize, NormalizeImage, Permute, PadStride, L
 from keypoint_preprocess import EvalAffine, TopDownEvalAffine, expand_crop
 from visualize import visualize_box_mask
 from utils import argsparser, Timer, get_current_memory_mb, multiclass_nms, coco_clsid2catid
+
+from app.handler import handle_task
 
 # Global dictionary
 SUPPORT_MODELS = {
@@ -408,6 +411,10 @@ class Detector(object):
             results.append(result)
             print('Test iter {}'.format(i))
         results = self.merge_batch_result(results)
+
+        # do the business
+        asyncio.run(handle_task(FLAGS.app, 'DEFAULT', results))
+
         if save_results:
             Path(self.output_dir).mkdir(exist_ok=True)
             self.save_coco_results(
