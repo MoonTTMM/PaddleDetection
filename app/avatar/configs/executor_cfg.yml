@@ -1,4 +1,6 @@
 app: avatar
+controller_ip: 127.0.0.1
+controller_port: 9870
 
 DEFAULT:
   executor: AvatarDefaultExecutor

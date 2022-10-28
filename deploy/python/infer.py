@@ -412,14 +412,24 @@ class Detector(object):
             print('Test iter {}'.format(i))
         results = self.merge_batch_result(results)
 
+        wrapper = self.wrap_results(results, self.pred_config.labels, self.threshold)
         # do the business
-        asyncio.run(handle_task(FLAGS.app, 'DEFAULT', results))
+        asyncio.run(handle_task(FLAGS.app, 'DEFAULT', wrapper))
 
         if save_results:
             Path(self.output_dir).mkdir(exist_ok=True)
             self.save_coco_results(
                 image_list, results, use_coco_category=FLAGS.use_coco_category)
         return results
+
+    @staticmethod
+    def wrap_results(results, labels, threshold):
+        wrapper = {
+            'results': results,
+            'labels': labels,
+            'threshold': threshold
+        }
+        return wrapper
 
     def predict_video(self, video_file, camera_id):
         video_out_name = 'output.mp4'
