@@ -210,6 +210,14 @@ def argsparser():
     return parser
 
 
+def wrap_results(results, labels=[], threshold=0.5):
+    wrapper = {
+        'results': results,
+        'labels': labels,
+        'threshold': threshold
+    }
+    return wrapper
+
 class Times(object):
     def __init__(self):
         self.time = 0.

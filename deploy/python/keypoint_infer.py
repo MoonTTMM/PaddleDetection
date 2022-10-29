@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
+import asyncio
 import os
 import time
 import yaml
@@ -27,7 +27,9 @@ import paddle
 import sys
 # add deploy path of PadleDetection to sys.path
 parent_path = os.path.abspath(os.path.join(__file__, *(['..'])))
+root_path = os.path.abspath(os.path.join(__file__, *(['../../..'])))
 sys.path.insert(0, parent_path)
+sys.path.insert(1, root_path)
 
 from preprocess import preprocess, NormalizeImage, Permute
 from keypoint_preprocess import EvalAffine, TopDownEvalAffine, expand_crop
@@ -35,9 +37,11 @@ from keypoint_postprocess import HrHRNetPostProcess, HRNetPostProcess
 from visualize import visualize_pose
 from paddle.inference import Config
 from paddle.inference import create_predictor
-from utils import argsparser, Timer, get_current_memory_mb
+from utils import argsparser, Timer, get_current_memory_mb, wrap_results
 from benchmark_utils import PaddleInferBenchmark
 from infer import Detector, get_test_images, print_arguments
+
+from app.handler import handle_task
 
 # Global dictionary
 KEYPOINT_SUPPORT_MODELS = {
@@ -238,6 +242,10 @@ class KeyPointDetector(Detector):
             if visual:
                 print('Test iter {}'.format(i))
         results = self.merge_batch_result(results)
+
+        wrapper = wrap_results(results=results)
+        asyncio.run(handle_task(self.app, 'DEFAULT', wrapper))
+
         return results
 
     def predict_video(self, video_file, camera_id):

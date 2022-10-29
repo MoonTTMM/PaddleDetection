@@ -39,7 +39,7 @@ from picodet_postprocess import PicoDetPostProcess
 from preprocess import preprocess, Resize, NormalizeImage, Permute, PadStride, LetterBoxResize, WarpAffine, Pad, decode_image
 from keypoint_preprocess import EvalAffine, TopDownEvalAffine, expand_crop
 from visualize import visualize_box_mask
-from utils import argsparser, Timer, get_current_memory_mb, multiclass_nms, coco_clsid2catid
+from utils import argsparser, Timer, get_current_memory_mb, multiclass_nms, coco_clsid2catid, wrap_results
 
 from app.handler import handle_task
 
@@ -416,7 +416,7 @@ class Detector(object):
             print('Test iter {}'.format(i))
         results = self.merge_batch_result(results)
 
-        wrapper = self.wrap_results(results, self.pred_config.labels, self.threshold)
+        wrapper = wrap_results(results, self.pred_config.labels, self.threshold)
         # do the business
         asyncio.run(handle_task(self.app, 'DEFAULT', wrapper))
 
@@ -425,15 +425,6 @@ class Detector(object):
             self.save_coco_results(
                 image_list, results, use_coco_category=FLAGS.use_coco_category)
         return results
-
-    @staticmethod
-    def wrap_results(results, labels, threshold):
-        wrapper = {
-            'results': results,
-            'labels': labels,
-            'threshold': threshold
-        }
-        return wrapper
 
     def predict_video(self, video_file, camera_id):
         video_out_name = 'output.mp4'

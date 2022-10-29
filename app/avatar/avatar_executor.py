@@ -17,6 +17,11 @@ class AvatarDefaultExecutor(Executor):
 
         if 'boxes' in actual_results and len(actual_results['boxes']) > 0:
             self.find_person_and_say_hello(actual_results['boxes'], labels, threshold)
+        if 'keypoint' in actual_results and len(actual_results['keypoint']) > 0:
+            self.find_person_action(actual_results)
+
+    def find_person_action(self, results):
+        print('===== interact according action')
 
     def find_person_and_say_hello(self, boxes, labels, threshold):
         udp_client = self.context.udp_client_socket
