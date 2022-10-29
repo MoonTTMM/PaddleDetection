@@ -30,7 +30,9 @@ from paddle.inference import create_predictor
 import sys
 # add deploy path of PadleDetection to sys.path
 parent_path = os.path.abspath(os.path.join(__file__, *(['..'])))
+root_path = os.path.abspath(os.path.join(__file__, *(['../../..'])))
 sys.path.insert(0, parent_path)
+sys.path.insert(1, root_path)
 
 from benchmark_utils import PaddleInferBenchmark
 from picodet_postprocess import PicoDetPostProcess
@@ -102,7 +104,8 @@ class Detector(object):
                  enable_mkldnn_bfloat16=False,
                  output_dir='output',
                  threshold=0.5,
-                 delete_shuffle_pass=False):
+                 delete_shuffle_pass=False,
+                 app='avatar'):
         self.pred_config = self.set_config(model_dir)
         self.predictor, self.config = load_predictor(
             model_dir,
@@ -124,6 +127,7 @@ class Detector(object):
         self.batch_size = batch_size
         self.output_dir = output_dir
         self.threshold = threshold
+        self.app = app
 
     def set_config(self, model_dir):
         return PredictConfig(model_dir)
@@ -414,7 +418,7 @@ class Detector(object):
 
         wrapper = self.wrap_results(results, self.pred_config.labels, self.threshold)
         # do the business
-        asyncio.run(handle_task(FLAGS.app, 'DEFAULT', wrapper))
+        asyncio.run(handle_task(self.app, 'DEFAULT', wrapper))
 
         if save_results:
             Path(self.output_dir).mkdir(exist_ok=True)
@@ -995,7 +999,8 @@ def main():
         enable_mkldnn=FLAGS.enable_mkldnn,
         enable_mkldnn_bfloat16=FLAGS.enable_mkldnn_bfloat16,
         threshold=FLAGS.threshold,
-        output_dir=FLAGS.output_dir)
+        output_dir=FLAGS.output_dir,
+        app=FLAGS.app)
 
     # predict from video file or camera video stream
     if FLAGS.video_file is not None or FLAGS.camera_id != -1:
