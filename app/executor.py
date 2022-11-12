@@ -5,4 +5,3 @@ class Executor(object):
 
     def execute(self, results):
         print('do the super job')
-        print(results)
